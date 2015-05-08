@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Media;
 using System.ServiceProcess;
+using System.Security.Principal;
 
 namespace vServiceHelper
 {
@@ -25,13 +26,20 @@ namespace vServiceHelper
         {
             InitializeComponent();
 
-            this.txtMessages.Text += "[" + DateTime.Now.ToString() + "] Welcome :-)";
+            if (this.IsAdministrator() == false)
+            {
+                this.txtMessages.Text += "Warning!!!\nIt seems you are not an Administrator. The App may not work as desired. Please start again with administrator privileges.";
+            }
+            else
+            {
+                this.txtMessages.Text += "[" + DateTime.Now.ToString() + "] Welcome :-)";
+            }
         }
 
         private void checkAllServices(object sender, RoutedEventArgs e)
         {
             this.servicesRunning = 0;
-            this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Check Service Status ....";
+            this.txtMessages.Text += "\n-------------------------------------\n[" + DateTime.Now.ToString() + "] Check Service Status ....";
             foreach (string service in this.services)
             {
                 this.checkService(service);
@@ -55,6 +63,9 @@ namespace vServiceHelper
 
         private void startAllServices(object sender, RoutedEventArgs e)
         {
+            this.btnAction.Content = " .... please wait ....";
+            this.btnAction.IsEnabled = false;
+            this.txtMessages.Text += "\n-------------------------------------\n[" + DateTime.Now.ToString() + "] Try to Start Services ....";
             foreach (string service in this.services)
             {
                 this.startService(service);
@@ -64,6 +75,9 @@ namespace vServiceHelper
 
         private void stopAllServices(object sender, RoutedEventArgs e)
         {
+            this.btnAction.Content = " .... please wait ....";
+            this.btnAction.IsEnabled = false;
+            this.txtMessages.Text += "\n-------------------------------------\n[" + DateTime.Now.ToString() + "] Try to Stop Services ....";
             foreach (string service in this.services)
             {
                 this.stopService(service);
@@ -85,7 +99,7 @@ namespace vServiceHelper
                 }
                 catch (Exception e)
                 {
-                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' could not stopped! (" + e.InnerException.Message.ToString() + ")";
+                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' could not started! (" + e.InnerException.Message.ToString() + ")";
                 }
             }
             else
@@ -126,12 +140,17 @@ namespace vServiceHelper
             }
             else if (service.Status == ServiceControllerStatus.Running)
             {
-                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + " running!";
+                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' running!";
+                this.servicesRunning++;
+            }
+            else if (service.Status == ServiceControllerStatus.StartPending || service.Status == ServiceControllerStatus.StopPending)
+            {
+                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' pending!";
                 this.servicesRunning++;
             }
             else
             {
-                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + " unknown";
+                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Status of Service '" + Name + "' unknown or not defined!";
             }
         }
 
@@ -144,6 +163,19 @@ namespace vServiceHelper
         {
             InfoWindow i = new InfoWindow();
             i.ShowDialog();
+        }
+
+        private bool IsAdministrator()
+        {
+            WindowsIdentity identity = WindowsIdentity.GetCurrent();
+            WindowsPrincipal principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+
+        private void openSettingsWindow(object sender, RoutedEventArgs e)
+        {
+            SettingsWindow s = new SettingsWindow();
+            s.ShowDialog();
         }
 
     }

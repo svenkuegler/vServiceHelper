@@ -1,9 +1,9 @@
 ﻿<Window x:Class="vServiceHelper.InfoWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Info" Height="288" Width="300" ResizeMode="NoResize" Icon="swiss_army_knife-50.ico">
+        Title="Info" Height="288" Width="300" ResizeMode="NoResize" Icon="swiss_army_knife-50.ico" ShowInTaskbar="False">
     <Grid>
-        <Button Content="OK" Margin="88,0,88.6,15.4" Height="33" VerticalAlignment="Bottom" Click="closeWindow"/>
+        <Button Content="OK" Margin="88,0,88.6,15.4" Height="33" VerticalAlignment="Bottom" Click="closeWindow" IsCancel="True"/>
         <Label Name="lblHeader" Content="vServiceHelper&#xD;&#xA;" HorizontalAlignment="Left" Margin="80,27,0,0" VerticalAlignment="Top" FontFamily="Segoe UI Semibold" FontSize="18"/>
         <Label Content="Service Helper for Virtualisation under Windows. &#xA;Written by Sven Kuegler" Margin="9,90,9.6,0" VerticalAlignment="Top" Height="70"/>
         <Label Content="https://github.com/svenkuegler/vServiceHelper" HorizontalAlignment="Left" Margin="16,165,0,0" VerticalAlignment="Top" Foreground="#FF0475FF"/>
