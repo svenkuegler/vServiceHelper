@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Media;
 using System.ServiceProcess;
 using System.Security.Principal;
+using System.Collections.Generic;
+using System.Windows.Controls;
 
 namespace vServiceHelper
 {
@@ -15,7 +17,7 @@ namespace vServiceHelper
         /// <summary>
         /// Services
         /// </summary>
-        public string[] services = { "VMnetDHCP", "VMAuthdService", "VMware NAT Service", "VMUSBArbService" };
+        public string[] services = {};
 
         /// <summary>
         /// Number of curently running Services
@@ -26,6 +28,7 @@ namespace vServiceHelper
         {
             InitializeComponent();
 
+            // notify if not run with admin privileges
             if (this.IsAdministrator() == false)
             {
                 this.txtMessages.Text += "Warning!!!\nIt seems you are not an Administrator. The App may not work as desired. Please start again with administrator privileges.";
@@ -33,6 +36,18 @@ namespace vServiceHelper
             else
             {
                 this.txtMessages.Text += "[" + DateTime.Now.ToString() + "] Welcome :-)";
+            }
+
+            // load config an set combobox
+            Config c = new Config().load("config.xml");
+            foreach(KeyValuePair<string, List<string>> ConfigGroups in c.getServiceGroups()) 
+            {
+                this.comboBoxServiceGroups.Items.Add(ConfigGroups.Key.ToString());
+                string[] serviceGroupsServices = ConfigGroups.Value.ToArray();
+
+                int oldServicesLength = this.services.Length;
+                Array.Resize<String>(ref this.services, oldServicesLength + serviceGroupsServices.Length);
+                Array.Copy(serviceGroupsServices, 0, this.services, oldServicesLength, serviceGroupsServices.Length);
             }
         }
 
@@ -133,24 +148,31 @@ namespace vServiceHelper
 
         private void checkService(string Name)
         {
-            ServiceController service = new ServiceController(Name);
-            if (service.Status == ServiceControllerStatus.Stopped)
+            try
             {
-                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' stopped!";
+                ServiceController service = new ServiceController(Name);
+                if (service.Status == ServiceControllerStatus.Stopped)
+                {
+                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' stopped!";
+                }
+                else if (service.Status == ServiceControllerStatus.Running)
+                {
+                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' running!";
+                    this.servicesRunning++;
+                }
+                else if (service.Status == ServiceControllerStatus.StartPending || service.Status == ServiceControllerStatus.StopPending)
+                {
+                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' pending!";
+                    this.servicesRunning++;
+                }
+                else
+                {
+                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Status of Service '" + Name + "' unknown or not defined!";
+                }
             }
-            else if (service.Status == ServiceControllerStatus.Running)
+            catch (Exception e)
             {
-                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' running!";
-                this.servicesRunning++;
-            }
-            else if (service.Status == ServiceControllerStatus.StartPending || service.Status == ServiceControllerStatus.StopPending)
-            {
-                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' pending!";
-                this.servicesRunning++;
-            }
-            else
-            {
-                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Status of Service '" + Name + "' unknown or not defined!";
+                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Ooops an Error while processing '" + Name + "'. (" + e.Message + ")";
             }
         }
 

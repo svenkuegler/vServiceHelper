@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<config>
+  <serviceGroup>
+    <name>VMware Player</name>
+    <services>
+      <service>VMnetDHCP</service>
+      <service>VMAuthdService</service>
+      <service>VMware NAT Service</service>
+      <service>VMUSBArbService</service>
+    </services>
+  </serviceGroup>
+  <serviceGroup>
+    <name>Virtualbox</name>
+    <services>
+      <service>vboxservice</service>
+    </services>
+  </serviceGroup>
+</config>
