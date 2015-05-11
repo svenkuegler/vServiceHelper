@@ -39,16 +39,24 @@ namespace vServiceHelper
             }
 
             // load config an set combobox
-            Config c = new Config().load("config.xml");
-            foreach(KeyValuePair<string, List<string>> ConfigGroups in c.getServiceGroups()) 
+            try
             {
-                this.comboBoxServiceGroups.Items.Add(ConfigGroups.Key.ToString());
-                string[] serviceGroupsServices = ConfigGroups.Value.ToArray();
+                Config c = new Config().load("config.xml");
+                foreach (KeyValuePair<string, List<string>> ConfigGroups in c.getServiceGroups())
+                {
+                    this.comboBoxServiceGroups.Items.Add(ConfigGroups.Key.ToString());
+                    string[] serviceGroupsServices = ConfigGroups.Value.ToArray();
 
-                int oldServicesLength = this.services.Length;
-                Array.Resize<String>(ref this.services, oldServicesLength + serviceGroupsServices.Length);
-                Array.Copy(serviceGroupsServices, 0, this.services, oldServicesLength, serviceGroupsServices.Length);
+                    int oldServicesLength = this.services.Length;
+                    Array.Resize<String>(ref this.services, oldServicesLength + serviceGroupsServices.Length);
+                    Array.Copy(serviceGroupsServices, 0, this.services, oldServicesLength, serviceGroupsServices.Length);
+                }
             }
+            catch (Exception e)
+            {
+                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Ooops an Error while processing Config file! (" + e.Message + ")";
+            }
+            
         }
 
         private void checkAllServices(object sender, RoutedEventArgs e)
@@ -104,22 +112,29 @@ namespace vServiceHelper
         {
             DateTime date = DateTime.Now;
 
-            ServiceController service = new ServiceController(Name);
-            if (service.Status == ServiceControllerStatus.Stopped)
+            try 
             {
-                try
+                ServiceController service = new ServiceController(Name);
+                if (service.Status == ServiceControllerStatus.Stopped)
                 {
-                    service.Start();
-                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' started!";
+                    try
+                    {
+                        service.Start();
+                        this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' started!";
+                    }
+                    catch (Exception e)
+                    {
+                        this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' could not started! (" + e.InnerException.Message.ToString() + ")";
+                    }
                 }
-                catch (Exception e)
+                else
                 {
-                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' could not started! (" + e.InnerException.Message.ToString() + ")";
+                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' allready running!";
                 }
             }
-            else
+            catch (Exception e)
             {
-                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' allready running!";
+                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Ooops an Error while processing '" + Name + "'. (" + e.Message + ")";
             }
         }
 
@@ -127,22 +142,29 @@ namespace vServiceHelper
         {
             DateTime date = DateTime.Now;
 
-            ServiceController service = new ServiceController(Name);
-            if (service.Status == ServiceControllerStatus.Running)
+            try 
             {
-                try
+                ServiceController service = new ServiceController(Name);
+                if (service.Status == ServiceControllerStatus.Running)
                 {
-                    service.Stop();
-                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' stopped!";
+                    try
+                    {
+                        service.Stop();
+                        this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' stopped!";
+                    }
+                    catch (Exception e)
+                    {
+                        this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' could not stopped! (" + e.InnerException.Message.ToString() + ")";
+                    }
                 }
-                catch (Exception e)
+                else
                 {
-                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' could not stopped! (" + e.InnerException.Message.ToString() + ")";
+                    this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' allready stopped!";
                 }
             }
-            else
+            catch (Exception e)
             {
-                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Service '" + Name + "' allready stopped!";
+                this.txtMessages.Text += "\n[" + DateTime.Now.ToString() + "] Ooops an Error while processing '" + Name + "'. (" + e.Message + ")";
             }
         }
 
