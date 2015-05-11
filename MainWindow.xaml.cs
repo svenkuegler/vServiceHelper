@@ -24,8 +24,25 @@ namespace vServiceHelper
         /// </summary>
         private int servicesRunning = 0;
 
+        /// <summary>
+        /// Configuration
+        /// </summary>
+        private Config c;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public MainWindow()
         {
+            // load config an set combobox
+            try
+            {
+                this.c = new Config().load("config.xml");
+            }
+            catch (Exception e)
+            {
+                //string[] error = {"\n[" + DateTime.Now.ToString() + "] Ooops an Error while processing Config file! (" + e.Message + ")"};
+            }
             InitializeComponent();
 
             // notify if not run with admin privileges
@@ -41,15 +58,11 @@ namespace vServiceHelper
             // load config an set combobox
             try
             {
-                Config c = new Config().load("config.xml");
-                foreach (KeyValuePair<string, List<string>> ConfigGroups in c.getServiceGroups())
+                this.comboBoxServiceGroups.Items.Add("all services");
+                foreach (KeyValuePair<string, List<string>> ConfigGroups in this.c.getServiceGroups())
                 {
                     this.comboBoxServiceGroups.Items.Add(ConfigGroups.Key.ToString());
                     string[] serviceGroupsServices = ConfigGroups.Value.ToArray();
-
-                    int oldServicesLength = this.services.Length;
-                    Array.Resize<String>(ref this.services, oldServicesLength + serviceGroupsServices.Length);
-                    Array.Copy(serviceGroupsServices, 0, this.services, oldServicesLength, serviceGroupsServices.Length);
                 }
             }
             catch (Exception e)
@@ -59,6 +72,11 @@ namespace vServiceHelper
             
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void checkAllServices(object sender, RoutedEventArgs e)
         {
             this.servicesRunning = 0;
@@ -84,6 +102,11 @@ namespace vServiceHelper
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void startAllServices(object sender, RoutedEventArgs e)
         {
             this.btnAction.Content = " .... please wait ....";
@@ -96,6 +119,11 @@ namespace vServiceHelper
             this.checkAllServices(sender, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void stopAllServices(object sender, RoutedEventArgs e)
         {
             this.btnAction.Content = " .... please wait ....";
@@ -108,6 +136,10 @@ namespace vServiceHelper
             this.checkAllServices(sender, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Name"></param>
         private void startService(string Name)
         {
             DateTime date = DateTime.Now;
@@ -138,6 +170,10 @@ namespace vServiceHelper
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Name"></param>
         private void stopService(string Name)
         {
             DateTime date = DateTime.Now;
@@ -168,6 +204,10 @@ namespace vServiceHelper
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Name"></param>
         private void checkService(string Name)
         {
             try
@@ -198,17 +238,31 @@ namespace vServiceHelper
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void scrollDown(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             this.txtMessages.ScrollToEnd();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void openInfoWindow(object sender, RoutedEventArgs e)
         {
             InfoWindow i = new InfoWindow();
             i.ShowDialog();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private bool IsAdministrator()
         {
             WindowsIdentity identity = WindowsIdentity.GetCurrent();
@@ -216,10 +270,40 @@ namespace vServiceHelper
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void openSettingsWindow(object sender, RoutedEventArgs e)
         {
             SettingsWindow s = new SettingsWindow();
             s.ShowDialog();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void comboBoxServiceGroups_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            string selectedGroup = this.comboBoxServiceGroups.SelectedValue.ToString();
+            this.btnAction.IsEnabled = false;
+            foreach (KeyValuePair<string, List<string>> ConfigGroups in this.c.getServiceGroups())
+            {
+                string[] serviceGroupsServices = ConfigGroups.Value.ToArray();
+                if (selectedGroup == ConfigGroups.Key.ToString())
+                {
+                    this.services = serviceGroupsServices;
+                }
+                else if(selectedGroup == "all services")
+                {
+                    int oldServicesLength = this.services.Length;
+                    Array.Resize<String>(ref this.services, oldServicesLength + serviceGroupsServices.Length);
+                    Array.Copy(serviceGroupsServices, 0, this.services, oldServicesLength, serviceGroupsServices.Length);
+                }
+            }
         }
 
     }
